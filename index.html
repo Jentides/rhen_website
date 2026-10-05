@@ -400,37 +400,56 @@
             
             // Route to selected platform
             if (platform === 'whatsapp') {
-                const whatsappNumber = '639498116824'; // Existing WhatsApp number
+                const whatsappNumber = '639498116824'; 
                 window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(inquiryText)}`, '_blank');
             } 
             else if (platform === 'facebook' || platform === 'instagram') {
-                // Facebook and Instagram do not allow pre-filled text in URLs, so we copy it for the user
-                navigator.clipboard.writeText(inquiryText).then(() => {
-                    const notice = document.getElementById('copy-notice');
-                    notice.classList.remove('hidden');
-                    
-                    // Show prompt message to the user before opening the link
+                const url = platform === 'facebook' 
+                    ? 'https://m.me/61561043020709' 
+                    : 'https://www.instagram.com/rmrscoots/';
+
+                // Fallback copying method: Works on HTTP (non-secure) sites and prevents popup blockers
+                const textArea = document.createElement("textarea");
+                textArea.value = inquiryText;
+                
+                // Keep it out of view to avoid layout shifts
+                textArea.style.position = "fixed"; 
+                textArea.style.left = "-999999px";
+                textArea.style.top = "-999999px";
+                document.body.appendChild(textArea);
+                
+                // Specific fix to ensure it copies correctly on iPhones and iPads
+                if (navigator.userAgent.match(/ipad|iphone/i)) {
+                    const range = document.createRange();
+                    range.selectNodeContents(textArea);
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    textArea.setSelectionRange(0, 999999);
+                } else {
+                    textArea.select();
+                }
+
+                // Execute the synchronous copy command
+                let successful = false;
+                try {
+                    successful = document.execCommand('copy');
+                } catch (err) {
+                    console.error('Fallback copy failed', err);
+                }
+                
+                // Clean up the temporary element
+                document.body.removeChild(textArea);
+
+                // Show the alert depending on success
+                if (successful) {
                     alert("Your inquiry details have been copied to your clipboard!\n\nPlease paste them directly into the chat once the page opens.");
-                    
-                    // Hide notice after 6 seconds
-                    setTimeout(() => {
-                        notice.classList.add('hidden');
-                    }, 6000);
-                    
-                    // Open direct link
-                    const url = platform === 'facebook' 
-                        ? 'https://m.me/61561043020709' 
-                        : 'https://www.instagram.com/rmrscoots/';
-                    window.open(url, '_blank');
-                }).catch(err => {
-                    console.error('Failed to copy text: ', err);
-                    alert("We couldn't automatically copy your text. Please try again or use WhatsApp.");
-                    
-                    const url = platform === 'facebook' 
-                        ? 'https://m.me/61561043020709' 
-                        : 'https://www.instagram.com/rmrscoots/';
-                    window.open(url, '_blank');
-                });
+                } else {
+                    alert("We couldn't automatically copy your text. Please use WhatsApp or copy your details manually.");
+                }
+                
+                // Immediately open the link
+                window.open(url, '_blank');
             }
         }
 
