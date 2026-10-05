@@ -76,7 +76,6 @@
         
         <!-- Background Image & Gradient Overlays -->
         <div class="absolute inset-0 z-0">
-            <!-- REPLACE 'hero_bg.jpg' WITH YOUR ACTUAL IMAGE -->
             <img src="background.png" alt="Motorcycle Background" class="w-full h-full object-cover opacity-40">
             <div class="absolute inset-0 bg-gradient-to-b from-[#050505]/70 via-[#050505]/50 to-[#050505]"></div>
         </div>
@@ -410,6 +409,9 @@
                     const notice = document.getElementById('copy-notice');
                     notice.classList.remove('hidden');
                     
+                    // Show prompt message to the user before opening the link
+                    alert("Your inquiry details have been copied to your clipboard!\n\nPlease paste them directly into the chat once the page opens.");
+                    
                     // Hide notice after 6 seconds
                     setTimeout(() => {
                         notice.classList.add('hidden');
@@ -418,13 +420,15 @@
                     // Open direct link
                     const url = platform === 'facebook' 
                         ? 'https://m.me/61561043020709' 
-                        : 'https://www.instagram.com/rhenmotorcyclerental/';
+                        : 'https://www.instagram.com/rmrscoots/';
                     window.open(url, '_blank');
                 }).catch(err => {
                     console.error('Failed to copy text: ', err);
+                    alert("We couldn't automatically copy your text. Please try again or use WhatsApp.");
+                    
                     const url = platform === 'facebook' 
                         ? 'https://m.me/61561043020709' 
-                        : 'https://www.instagram.com/rhenmotorcyclerental/';
+                        : 'https://www.instagram.com/rmrscoots/';
                     window.open(url, '_blank');
                 });
             }
