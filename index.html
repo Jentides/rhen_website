@@ -46,6 +46,9 @@
         ::-webkit-scrollbar-track { background: #050505; }
         ::-webkit-scrollbar-thumb { background: #FF6B35; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #E85D2A; }
+        
+        /* Thumbnail highlight style */
+        .thumb-active { border-color: #FF6B35 !important; opacity: 1 !important; }
     </style>
 </head>
 <body class="font-sans antialiased flex flex-col min-h-screen selection:bg-rhen_orange selection:text-white">
@@ -116,6 +119,65 @@
             </div>
         </div>
     </section>
+
+    <!-- MOTORCYCLE DETAIL MODAL (Hidden by default) -->
+    <div id="detailModal" class="fixed inset-0 z-50 hidden opacity-0 transition-opacity duration-300">
+        <div class="absolute inset-0 bg-black/95 backdrop-blur-md" onclick="closeModal()"></div>
+        
+        <div class="relative w-full max-w-6xl mx-auto h-full flex flex-col justify-center px-4 sm:px-6 lg:px-8 py-10 pointer-events-none">
+            
+            <button onclick="closeModal()" class="absolute top-6 right-6 md:top-10 md:right-10 text-gray-400 hover:text-rhen_orange transition-colors pointer-events-auto bg-gray-900/50 rounded-full p-2">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+
+            <div class="bg-[#0a0a0a] border border-gray-800 rounded-2xl overflow-hidden shadow-2xl pointer-events-auto max-h-[90vh] flex flex-col md:flex-row w-full">
+                
+                <!-- Left: Image Gallery -->
+                <div class="w-full md:w-3/5 bg-[#111] p-6 flex flex-col border-b md:border-b-0 md:border-r border-gray-800 overflow-y-auto custom-scrollbar">
+                    <div class="w-full aspect-[4/3] bg-black rounded-xl overflow-hidden mb-4 relative flex items-center justify-center">
+                        <img id="modalMainImg" src="" alt="Motorcycle" class="max-w-full max-h-full object-contain drop-shadow-2xl">
+                    </div>
+                    <!-- Thumbnails -->
+                    <div id="modalThumbnails" class="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Right: Details & Specs -->
+                <div class="w-full md:w-2/5 p-8 flex flex-col overflow-y-auto custom-scrollbar">
+                    <div class="mb-6">
+                        <span id="modalBrand" class="text-rhen_orange font-bold tracking-[0.2em] uppercase text-xs mb-2 block"></span>
+                        <h2 id="modalName" class="text-3xl md:text-4xl font-heading font-black text-white uppercase tracking-tighter mb-4"></h2>
+                        <div class="flex items-center gap-3 mb-6">
+                            <span id="modalCC" class="text-white font-bold text-sm bg-gray-800 px-3 py-1.5 rounded border border-gray-700"></span>
+                            <span id="modalColor" class="text-gray-400 text-sm flex items-center"><span class="w-3 h-3 rounded-full bg-gray-400 mr-2 border border-gray-600"></span></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-8 flex-grow">
+                        <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3 border-b border-gray-800 pb-2">Description</h3>
+                        <p id="modalDesc" class="text-gray-300 text-sm leading-relaxed mb-6"></p>
+                    </div>
+
+                    <div class="mt-auto pt-6 border-t border-gray-800">
+                        <div class="flex items-end justify-between mb-6">
+                            <div>
+                                <span class="block text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Daily Rate</span>
+                                <div class="flex items-baseline">
+                                    <span class="text-3xl font-black text-rhen_orange">₱<span id="modalPrice"></span></span>
+                                    <span class="text-gray-500 ml-1 text-sm">/day</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="bookFromModal()" class="w-full py-4 bg-rhen_orange hover:bg-rhen_orange_hover text-black rounded-lg font-bold transition-all uppercase tracking-wide text-lg shadow-[0_0_15px_rgba(255,107,53,0.2)]">
+                            Select & Book
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
 
     <!-- TERMS & INCLUSIONS SECTION -->
     <section id="terms" class="py-20 bg-[#0a0a0a] border-t border-gray-900 relative">
@@ -271,7 +333,6 @@
                 RHEN <span class="text-gray-700">Rentals</span>
             </span>
             
-            <!-- NEW Address Addition -->
             <p class="text-gray-400 text-sm font-medium mb-4">
                 📍 1840 Modesto Street, Malate, Manila
             </p>
@@ -283,7 +344,7 @@
     </footer>
 
     <script>
-        // UPDATED FLEET DATA WITH NEW MODELS, PRICES, COLORS, AND IMAGES
+        // UPDATED FLEET DATA WITH IMAGES ARRAYS AND DESCRIPTIONS
         const fleet = [
             { 
                 name: "Aerox V3 Standard", 
@@ -291,7 +352,9 @@
                 cc: "155cc", 
                 color: "Glaze Blue", 
                 price: "800",
-                imgSrc: "yamaha_aeroxw_1.jpg" // Using the white Aerox photo you provided earlier as a placeholder, update to glaze blue photo
+                imgSrc: "aeroxsta1-removebg.png", 
+                images: ["aeroxsta1.jpg", "aeroxsta2.jpg", "aeroxsta3.jpg", "aeroxsta4.jpg"],
+                description: "The standard Yamaha Aerox V3 offers a sporty, agile ride perfect for city weaving. Equipped with a punchy 155cc engine and a striking Glaze Blue finish."
             },
             { 
                 name: "Aerox SP", 
@@ -299,7 +362,14 @@
                 cc: "155cc", 
                 color: "Matte Blue", 
                 price: "1,100",
-                imgSrc: "yamaha_aeroxr_2.jpg" // Using the Matte Blue Aerox SP you provided
+                imgSrc: "aeroxsp1-removebg-preview.png", 
+                images: [
+                    "aeroxsp1.jpg", // Side View
+                    "aeroxsp2.jpg", // Front View
+                    "aeroxsp3.jpg", // Dash View
+                    "aeroxsp4.jpg"  // Front Angled
+                ],
+                description: "The premium Yamaha Aerox SP edition. Features aggressive racing styling, a fully digital dashboard, VVA technology for optimal fuel efficiency, and ABS for maximum safety on Manila roads."
             },
             { 
                 name: "NMAX V3", 
@@ -307,7 +377,9 @@
                 cc: "155cc", 
                 color: "Black", 
                 price: "1,100",
-                imgSrc: "nmax.jpg" // REPLACE WITH YOUR IMAGE FILENAME
+                imgSrc: "nmax1-removebg-preview.png", 
+                images: ["nmax1.jpg", "nmax2.jpg", "nmax3.jpg", "nmax4.jpg",],
+                description: "Experience maximum comfort with the Yamaha NMAX V3. This premium maxi-scooter provides excellent stability, traction control, and an incredibly smooth ride for longer journeys."
             },
             { 
                 name: "Mio 125i", 
@@ -315,7 +387,9 @@
                 cc: "125cc", 
                 color: "Matte Brown", 
                 price: "550",
-                imgSrc: "mio.jpg" // REPLACE WITH YOUR IMAGE FILENAME
+                imgSrc: "mio1-removebg-preview.png", 
+                images: ["mio1.jpg", "mio2.jpg", "mio3.jpg", "mio4.jpg", "mio5.jpg"],
+                description: "A lightweight and reliable daily commuter. The Mio 125i is highly fuel-efficient, easy to handle in heavy traffic, and features a sleek Matte Brown finish."
             },
             { 
                 name: "Click V3", 
@@ -323,7 +397,9 @@
                 cc: "125cc", 
                 color: "Gray", 
                 price: "650",
-                imgSrc: "honda_clickg_3.jpg" // REPLACE WITH YOUR IMAGE FILENAME
+                imgSrc: "clickv41-removebg-preview.png", 
+                images: ["clickv41.jpg", "clickv42.jpg", "clickv43.jpg", "clickv44.jpg"],
+                description: "Honda's renowned commuter scooter. The Click V3 features a liquid-cooled engine, combi-brake system, and sharp modern angles designed to cut through the city."
             },
             { 
                 name: "Click V4 (Standard)", 
@@ -331,7 +407,9 @@
                 cc: "125cc", 
                 color: "Black", 
                 price: "650",
-                imgSrc: "click_v4.jpg" // REPLACE WITH YOUR IMAGE FILENAME
+                imgSrc: "click1-removebg-preview.png", 
+                images: ["click1.jpg", "click2.jpg", "click3.jpg", "click4.jpg"],
+                description: "The latest iteration of the Honda Click. The V4 Standard comes with upgraded electronics, enhanced lighting, and Honda's signature reliability in a stealthy Black colorway."
             },
             { 
                 name: "Beat Premium", 
@@ -339,15 +417,17 @@
                 cc: "110cc", 
                 color: "Black", 
                 price: "550",
-                imgSrc: "honda_beatprem_5.jpg" // REPLACE WITH YOUR IMAGE FILENAME
+                imgSrc: "beat1-removebg-preview.png", 
+                images: ["beat1.jpg", "beat2.jpg", "beat3.jpg", "beat4.jpg", "beat5.jpg"],
+                description: "Compact, incredibly economical, and fun to ride. The Honda Beat Premium is the perfect entry-level choice for quick errands and beating gridlock."
             }
         ];
 
         // Generate Fleet Cards
         const grid = document.getElementById('fleetGrid');
-        fleet.forEach((bike) => {
+        fleet.forEach((bike, index) => {
             grid.innerHTML += `
-                <div class="bg-[#0a0a0a] rounded-xl overflow-hidden orange-border group flex flex-col">
+                <div class="bg-[#0a0a0a] rounded-xl overflow-hidden orange-border group flex flex-col cursor-pointer" onclick="openModal(${index})">
                     <!-- Image Header -->
                     <div class="h-56 bg-[#111] relative flex items-center justify-center overflow-hidden border-b border-gray-900">
                         <img src="${bike.imgSrc}" alt="${bike.name}" class="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700">
@@ -358,36 +438,116 @@
                     <!-- Content Body -->
                     <div class="p-6 flex-grow flex flex-col justify-between z-10 relative bg-[#0a0a0a]">
                         <div class="mb-4">
-                            <h4 class="text-2xl font-heading font-black text-white uppercase tracking-tighter mb-1">${bike.name}</h4>
+                            <h4 class="text-2xl font-heading font-black text-white uppercase tracking-tighter mb-1 group-hover:text-rhen_orange transition-colors">${bike.name}</h4>
                             <div class="flex items-center gap-3 mb-4">
                                 <span class="text-rhen_orange font-bold text-xs bg-rhen_orange/10 px-2 py-1 rounded border border-rhen_orange/20">${bike.cc}</span>
                                 <span class="text-gray-400 text-xs flex items-center"><span class="w-2 h-2 rounded-full bg-gray-400 mr-1.5"></span>${bike.color}</span>
                             </div>
                         </div>
                         
-                        <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-900">
+                        <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-900 gap-2">
                             <div>
                                 <span class="block text-[10px] text-gray-500 uppercase tracking-widest font-bold">Daily Rate</span>
                                 <span class="text-xl font-black text-white">₱${bike.price}</span>
                             </div>
-                            <a href="#contact" onclick="document.getElementById('unit').value='${bike.brand} ${bike.name}';" class="px-5 py-2.5 bg-[#151515] border border-gray-800 hover:border-rhen_orange hover:bg-rhen_orange hover:text-black text-white rounded-lg text-xs font-bold transition-all uppercase tracking-wide">Select</a>
+                            <button class="px-5 py-2.5 bg-[#151515] border border-gray-800 group-hover:border-rhen_orange group-hover:bg-rhen_orange group-hover:text-black text-white rounded-lg text-xs font-bold transition-all uppercase tracking-wide">Details</button>
                         </div>
                     </div>
                 </div>
             `;
         });
 
+        // Current selected bike tracking for the modal
+        let currentBikeIndex = null;
+
+        // Open Modal Logic
+        function openModal(index) {
+            currentBikeIndex = index;
+            const bike = fleet[index];
+            
+            // Populate Details
+            document.getElementById('modalBrand').innerText = bike.brand;
+            document.getElementById('modalName').innerText = bike.name;
+            document.getElementById('modalCC').innerText = bike.cc;
+            document.getElementById('modalColor').innerHTML = `<span class="w-3 h-3 rounded-full bg-gray-400 mr-2 border border-gray-600"></span>${bike.color}`;
+            document.getElementById('modalDesc').innerText = bike.description;
+            document.getElementById('modalPrice').innerText = bike.price;
+            
+            // Populate Images
+            document.getElementById('modalMainImg').src = bike.images[0];
+            
+            const thumbContainer = document.getElementById('modalThumbnails');
+            thumbContainer.innerHTML = '';
+            
+            bike.images.forEach((img, imgIndex) => {
+                const activeClass = imgIndex === 0 ? 'thumb-active' : 'opacity-60 hover:opacity-100';
+                thumbContainer.innerHTML += `
+                    <img src="${img}" 
+                         onclick="changeModalImage(this, '${img}')" 
+                         class="h-20 w-24 object-cover rounded-lg cursor-pointer border-2 border-transparent transition-all ${activeClass}" 
+                         alt="Thumbnail ${imgIndex + 1}">
+                `;
+            });
+
+            // Show Modal and prevent body scrolling
+            const modal = document.getElementById('detailModal');
+            modal.classList.remove('hidden');
+            // Small delay to allow display block to apply before changing opacity for animation
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.classList.add('opacity-100');
+            }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close Modal Logic
+        function closeModal() {
+            const modal = document.getElementById('detailModal');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            
+            // Wait for transition before hiding completely
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+
+        // Change Main Image from Thumbnails
+        function changeModalImage(thumbElement, src) {
+            document.getElementById('modalMainImg').src = src;
+            
+            // Reset active state on all thumbnails
+            const thumbs = document.getElementById('modalThumbnails').children;
+            for (let i = 0; i < thumbs.length; i++) {
+                thumbs[i].classList.remove('thumb-active');
+                thumbs[i].classList.add('opacity-60');
+            }
+            
+            // Add active state to clicked thumbnail
+            thumbElement.classList.add('thumb-active');
+            thumbElement.classList.remove('opacity-60');
+        }
+
+        // Book directly from Modal
+        function bookFromModal() {
+            const bike = fleet[currentBikeIndex];
+            document.getElementById('unit').value = `${bike.brand} ${bike.name}`;
+            closeModal();
+            setTimeout(() => {
+                document.querySelector('#contact').scrollIntoView({ behavior: 'smooth' });
+            }, 300);
+        }
+
         // Universal Inquiry Handler
         function sendInquiry(platform) {
             const form = document.getElementById('whatsappForm');
             
-            // Trigger native HTML5 validation before proceeding
             if (!form.checkValidity()) {
                 form.reportValidity();
                 return;
             }
 
-            // Gather values
             const name = document.getElementById('name').value.trim();
             const method = document.querySelector('input[name="contactMethod"]:checked').value;
             const contactDetails = document.getElementById('contactDetails').value.trim();
@@ -401,34 +561,20 @@
                 return new Date(dateString).toLocaleDateString('en-US', options);
             };
             
-            // Standardized inquiry body
             const inquiryText = `Hello RHEN Motorcycle Rentals!\n\nI would like to inquire about a rental:\n*Unit:* ${unit}\n*Dates:* ${formatDate(pickup)} to ${formatDate(dropoff)}\n\n*Name:* ${name}\n*Contact Method:* ${method} - ${contactDetails}\n*Additional Notes/Add-ons:* ${message || 'None'}\n\nI am aware of the ₱2,000 security deposit and ₱300 reservation fee.`;
             
-            // Route to selected platform
             if (platform === 'whatsapp') {
                 const whatsappNumber = '639498116824'; 
                 window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(inquiryText)}`, '_blank');
-            } 
-            
-            else if (platform === 'facebook' || platform === 'instagram') {
-                let url;
-                if (platform === 'facebook') {
-                    url = 'https://m.me/61561043020709';
-                } else if (platform === 'instagram') {
-                    url = 'https://www.instagram.com/rmrscoots/';
-                } 
-
-                // Fallback copying method: Works on HTTP (non-secure) sites and prevents popup blockers
+            } else if (platform === 'facebook' || platform === 'instagram') {
+                let url = platform === 'facebook' ? 'https://m.me/61561043020709' : 'https://www.instagram.com/rmrscoots/';
                 const textArea = document.createElement("textarea");
                 textArea.value = inquiryText;
-                
-                // Keep it out of view to avoid layout shifts
                 textArea.style.position = "fixed"; 
                 textArea.style.left = "-999999px";
                 textArea.style.top = "-999999px";
                 document.body.appendChild(textArea);
                 
-                // Specific fix to ensure it copies correctly on iPhones and iPads
                 if (navigator.userAgent.match(/ipad|iphone/i)) {
                     const range = document.createRange();
                     range.selectNodeContents(textArea);
@@ -440,25 +586,15 @@
                     textArea.select();
                 }
 
-                // Execute the synchronous copy command
                 let successful = false;
-                try {
-                    successful = document.execCommand('copy');
-                } catch (err) {
-                    console.error('Fallback copy failed', err);
-                }
-                
-                // Clean up the temporary element
+                try { successful = document.execCommand('copy'); } catch (err) {}
                 document.body.removeChild(textArea);
 
-                // Show the alert depending on success
                 if (successful) {
                     alert("Your inquiry details have been copied to your clipboard!\n\nPlease paste them directly into the chat once the page opens.");
                 } else {
                     alert("We couldn't automatically copy your text. Please use WhatsApp or copy your details manually.");
                 }
-                
-                // Immediately open the link
                 window.open(url, '_blank');
             }
         }
@@ -470,6 +606,16 @@
                 document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
             });
         });
+        
+        // Custom scrollbar style targeting webkit
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+            .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+            .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #FF6B35; }
+        `;
+        document.head.appendChild(style);
     </script>
     <style>
         .custom-date-picker::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
